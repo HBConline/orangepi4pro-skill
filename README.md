@@ -237,6 +237,12 @@
 >
 > **中文：** orangepi-build（基于 armbian）· 12 个交叉编译工具链（从清华镜像自动下载）· 构建流程：u-boot v2018.05 → 内核 5.15.147 → rootfs → 完整 `.img` · 支持 Gitee 国内镜像 (`GITEE_SERVER=yes`) · 可复现的一行构建命令
 
+### 📐 Hardware Schematics · 硬件原理图与 PCB
+
+> **EN:** Complete board-level design files included — full schematic PDF (SoC pinout, power tree, all peripherals) + TOP & BOT DXF PCB layouts (PCB V1.3.2, 2026-01-09) · 4 files · 4.5 MB · Enables circuit tracing, enclosure design, PCB re-spin, repair
+>
+> **中文：** 包含完整板级设计文件——全电路原理图 PDF（SoC 引脚、电源树、全部外设）+ TOP/BOT DXF PCB 版图（PCB V1.3.2, 2026-01-09）· 4 个文件 · 4.5 MB · 可用于电路追踪、外壳设计、PCB 改版、维修焊接
+
 ---
 
 ## 🚀 Quick Start · 快速开始
@@ -422,14 +428,16 @@ Or ask any Orange Pi 4 Pro question — the skill auto-activates via semantic ma
 
 | Metric · 指标 | Value · 数值 |
 |---|---|
-| Source Material · 源材料 | 263-page official manual (v1.4) · 官方手册 263 页 |
-| Skill Size · 技能大小 | 58.8 KB · 2,039 lines · 行 |
-| Chapters Covered · 覆盖章节 | 7 chapters · 章 + 2 appendices · 附录 |
+| Source Material · 源材料 | 263-page official manual (v1.4) + full PCB schematics · 官方手册 + 电路原理图 |
+| Skill Size · 技能大小 | 83 KB · 2,900+ lines · 12 chapters |
+| Chapters Covered · 覆盖章节 | 7 manual chapters + 5 extended chapters + 2 appendices |
 | Shell Commands · Shell 命令 | 150+ verified commands · 条验证命令 |
 | Configuration Files · 配置文件 | 20+ file paths with full syntax · 完整语法路径 |
-| Pin Mappings · 引脚映射 | Complete 40-pin matrix · 完整 40pin 矩阵 (GPIO/SPI/I2C/UART/PWM) |
+| Pin Mappings · 引脚映射 | Complete 40-pin matrix (GPIO/SPI/I2C/UART/PWM) + power pins |
 | AI Models · AI 模型 | 7 NPU models with full C++ build pipeline · 完整 C++ 编译管线 |
-| Compatibility Matrices · 兼容矩阵 | Kernel driver · Android feature · SSD · 内核驱动 / Android 功能 / SSD |
+| Compatibility Matrices · 兼容矩阵 | Kernel driver · Android feature · SSD · GPU/Codec (4 OS × 4 features) |
+| Schematics · 原理图 | 4 files (4.5 MB): PDF schematic + TOP/BOT DXF + DXF preview |
+| PCB Version · PCB 版本 | V1.3.2 (2026-01-09) · Full power tree, SoC pinout, 40pin GPIO mapping |
 
 ---
 
@@ -437,10 +445,28 @@ Or ask any Orange Pi 4 Pro question — the skill auto-activates via semantic ma
 
 ```
 orangepi4pro/
-├── SKILL.md                                    # 2,039-line knowledge base · 知识库
-├── README.md                                   # Bilingual documentation · 中英双语文档
-└── OrangePi_4_Pro_A733_用户手册_v1.4(1).pdf     # Original 263-page manual · 原始手册
+├── SKILL.md                                    # 2,827-line knowledge base · 11 chapters
+├── README.md                                   # Bilingual documentation · 14 HW tables
+├── OrangePi_4_Pro_A733_用户手册_v1.4(1).pdf     # Original 263-page official user manual
+└── schematics/                                 # Hardware design files · 硬件设计文件
+    ├── OPI 4 PRO V1_3_2_20260109.pdf           # Full schematic (multi-page PDF, 1.35 MB)
+    ├── OPi_4_Pro_V1_3_2-TOP.dxf                # PCB top layer layout (DXF, 1.24 MB)
+    ├── OPi_4_Pro_V1_3_2-BOT.dxf                # PCB bottom layer layout (DXF, 1.71 MB)
+    └── OPi_4_Pro_V1_3_2-DXF.pdf                # PCB layout preview (PDF, 325 KB)
 ```
+
+### 📐 Schematics Included · 含完整原理图
+
+> **PCB Version:** V1.3.2 · **Date:** 2026-01-09
+>
+> This skill ships the **complete board-level hardware design files**, enabling:
+> - **Circuit tracing** — Follow every signal from SoC to connector
+> - **Custom enclosure design** — Precise mechanical dimensions from DXF
+> - **PCB re-spin / derivative design** — Full schematic as reference
+> - **Repair & rework** — Component placement, test points, pin mapping
+> - **GPIO source tracing** — Trace 40-pin signals back to SoC GPIO banks
+>
+> **本技能包含完整板级硬件设计文件**，可用于：电路追踪 / 外壳设计 / PCB 改版 / 维修焊接 / GPIO 来源追踪
 
 **Design Philosophy · 设计理念：** Reference-Type Agent Skill — prioritizes searchability and precision over brevity. Every pin number, device node path, driver status, and build command is directly accessible without hallucination risk.
 

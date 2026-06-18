@@ -2822,6 +2822,96 @@ sudo sysctl -p /etc/sysctl.d/99-security.conf
 | `orangepi-build/output/debs/` | 编译的 deb 包 |
 | `orangepi-build/output/images/` | 编译的完整镜像 |
 
+---
+
+## 第十二章：硬件原理图与 PCB 设计文件
+
+> **文件位置：** 本仓库 `schematics/` 目录
+> **PCB 版本：** V1.3.2
+> **设计日期：** 2026-01-09
+> **文件格式：** PDF 电路图 + DXF PCB 版图
+
+### 12.1 文件清单
+
+| 文件 | 大小 | 格式 | 内容说明 |
+|------|------|------|---------|
+| `OPI 4 PRO V1_3_2_20260109.pdf` | 1.35 MB | PDF | 完整电路原理图（多页），包含所有芯片引脚连接、电源树、外设接口电路 |
+| `OPi_4_Pro_V1_3_2-TOP.dxf` | 1.24 MB | DXF | PCB 顶层版图 — 元器件布局、顶层走线、丝印层、焊盘 |
+| `OPi_4_Pro_V1_3_2-BOT.dxf` | 1.71 MB | DXF | PCB 底层版图 — 底层走线、过孔、测试点、散热区 |
+| `OPi_4_Pro_V1_3_2-DXF.pdf` | 325 KB | PDF | DXF 版图预览（可打印查看整体布局与元件位置） |
+
+### 12.2 原理图包含的关键电路模块
+
+| 电路模块 | 说明 |
+|---------|------|
+| **A733 SoC Core** | 全志 A733 主芯片（BGA 封装），包括所有引脚定义、供电配置、时钟源 |
+| **Power Tree · 电源树** | 多路 DC-DC 转换器（5V→3.3V/1.8V/1.2V/0.8V 等）、LDO、PMIC 电源管理芯片 |
+| **DDR4/LPDDR5** | 内存颗粒焊接位置、阻抗匹配、信号完整性设计 |
+| **eMMC Interface** | eMMC 模块插座引脚（包含 CLK/CMD/DATA0-7/RST） |
+| **SPI Flash** | 128Mb SPI NOR Flash 连接（CS/CLK/MOSI/MISO/WP/HOLD） |
+| **M.2 PCIe 3.0** | M-Key 插座引脚全映射（PCIe TX/RX lanes、REFCLK、PERST、SMBus） |
+| **Gigabit Ethernet** | YT8531CA PHY → RJ45（含 PoE 供电电路、网络变压器） |
+| **Wi-Fi 6 + BT 5.4** | 无线模组连接（SDIO 3.0 + UART/PCM for BT） |
+| **HDMI TX 2.0** | HDMI 差分对走线、CEC/HPD/DDC 信号 |
+| **MIPI CSI (×2)** | 双路摄像头输入（2-lane + 4-lane），含 I2C 控制、MCLK |
+| **MIPI DSI** | 4-lane MIPI 显示输出，含背光控制、触摸 I2C |
+| **USB 3.0 + USB 2.0 ×3** | USB 3.0 SuperSpeed 差分对 + USB 2.0 DP/DM |
+| **Audio Codec** | ES8323 音频编解码器 → 3.5mm 耳机插孔 + 板载 MIC + 喇叭 |
+| **40-Pin GPIO Header** | 完整 40pin 引脚到 SoC 的 GPIO 复用映射 |
+| **Debug UART** | 3-pin 串口（TX/RX/GND）连接到 SoC 调试 UART |
+| **Power Management** | 电源按键、复位按键、BOOT 按键、电池备份电路 |
+| **Clock Generator** | 24MHz/32.768KHz 晶振、RTC 时钟源 |
+| **SD Card Slot** | uSD 卡槽连接（含卡检测引脚） |
+
+### 12.3 DXF PCB 版图用途
+
+**TOP 层（`OPi_4_Pro_V1_3_2-TOP.dxf`）：**
+- 元器件精确布局位置
+- 顶层焊盘与过孔
+- 丝印标注（元件编号、接口名称、版本号）
+- 可用于制作 PCB 外壳/散热器/安装支架的机械图纸
+
+**BOT 层（`OPi_4_Pro_V1_3_2-BOT.dxf`）：**
+- 底层布线全貌
+- 测试点位置
+- 散热铜皮区域
+- M.2 插座、eMMC 模块座等底部元件位置
+
+### 12.4 如何使用这些文件
+
+| 场景 | 使用的文件 | 工具 |
+|------|-----------|------|
+| **查看电路连接** | `OPI 4 PRO V1_3_2_20260109.pdf` | 任意 PDF 阅读器 |
+| **焊接/维修** | 原理图 PDF | PDF 阅读器，查找元件位号和引脚号 |
+| **设计外壳** | TOP.dxf + BOT.dxf | AutoCAD / Fusion 360 / FreeCAD |
+| **PCB 改版** | DXF 文件 | Altium Designer / KiCad / Eagle |
+| **定位安装孔** | DXF.pdf / DXF | 查看 4×3.0mm 定位孔精确位置 |
+| **GPIO 追踪** | 原理图 PDF | 从 40pin 反向追踪到 SoC GPIO Bank |
+
+### 12.5 重要设计细节
+
+**电源设计：**
+- Type-C 5V 直接供电，无 PD 协议芯片
+- 多级 DC-DC 产生各电压域
+- PoE 通过专用电路注入到 5V rail
+
+**信号完整性：**
+- HDMI/MIPI/PCIe 等高速信号采用差分对 + 等长走线
+- DDR 内存采用 fly-by 拓扑
+- 关键时钟线包地处理
+
+**散热设计：**
+- SoC 下方 BOT 层大面积铜皮 + 过孔矩阵（Thermal Via Array）
+- M.2 SSD 位置预留散热间隙
+
+**ESD 保护：**
+- USB/HDMI/以太网接口均有 ESD 保护二极管
+- 40pin GPIO 无内置 ESD（使用时注意！）
+
+---
+
 > **完整手册位置：** `D:\data\xwechat_files\wxid_igymei9xkkm822_0c54\msg\file\2026-06\output\output\pdf\OrangePi_4_Pro_A733_用户手册_v1.4(1)\OrangePi_4_Pro_A733_用户手册_v1.4(1).md`
 >
-> 本 SKILL 涵盖手册全部 263 页内容 + 实战项目、故障决策树、性能调优、安全加固等扩展内容。
+> **原理图文件位置：** 本仓库 `schematics/` 目录（PCB V1.3.2, 2026-01-09）
+>
+> 本 SKILL 涵盖手册全部 263 页内容 + 实战项目、故障决策树、性能调优、安全加固 + 完整电路原理图与 PCB 版图。
