@@ -1,9 +1,76 @@
 ---
 name: orangepi4pro
-description: Use when working with Orange Pi 4 Pro (A733 chip), including hardware setup, Linux/Android system configuration, GPIO programming, peripheral integration, NPU deployment, Linux SDK compilation, or troubleshooting this specific board
+description: Use when working on or targeting an Orange Pi 4 Pro (A733 chip). Activates when Claude Code runs directly on the Orange Pi 4 Pro board for on-device development (GPIO, I2C, SPI, UART, PWM, NPU, camera, display, compile on target), or when cross-developing from a PC to deploy onto this board. Covers hardware specs, Linux/Android system config, wiringOP/wiringOP-Python programming, edge AI (3 TOPS NPU), orangepi-build SDK, and troubleshooting.
 ---
 
 # Orange Pi 4 Pro (A733) 完整开发指南
+
+---
+
+## 速览：Claude Code 板载开发 · Onboard Development
+
+> **核心场景：** Claude Code 直接运行在 Orange Pi 4 Pro 的 Debian/Ubuntu 系统上，此技能赋予它对硬件、驱动、命令的完整认知。你只需用自然语言描述需求，Claude Code 就能直接操控 GPIO、读取传感器、编译代码、配置服务——**秒级从想法到运行**。
+
+### 典型对话示例
+
+```
+👤 你：写个程序，用 I2C OLED 显示 CPU 温度和 IP 地址
+🤖 Claude Code：
+    1. 检查 I2C 已启用 → sudo orangepi-config
+    2. 扫描 I2C 设备 → i2cdetect -y 0 找到 0x3C
+    3. 安装依赖 → pip3 install luma.oled
+    4. 生成 Python 代码 → 读取 thermal_zone0 + hostname -I
+    5. 运行 → python3 oled_info.py
+    6. 创建 systemd 服务 → 开机自启
+    ✅ 直接可用！
+
+👤 你：GPIO 7 接的 LED 不亮，怎么排查？
+🤖 Claude Code：
+    1. gpio readall → 确认 wPi 映射
+    2. gpio mode 2 out → 设置输出
+    3. gpio write 2 1 → 输出高电平
+    4. 用万用表测量 3.3V 引脚 → 确认电压正常
+    5. 检查接线 → GPIO→电阻→LED→GND
+    🔍 精确到每一步！
+
+👤 你：编译一个带 NPU 加速的目标检测程序
+🤖 Claude Code：
+    1. 确认 NPU 驱动正常 → ls /dev/video8
+    2. 直接生成 CMakeLists.txt + C++ 源码
+    3. cmake && make → 板载编译
+    4. ./yolo_detect /dev/video8 → 实时检测
+    🚀 板载端到端！
+```
+
+### 技能优势
+
+| 没有这个 Skill | 有这个 Skill |
+|--------------|------------|
+| ❌ Claude Code 不知道 GPIO 引脚映射 | ✅ 精确知道 Pin7=wPi2=PL4 |
+| ❌ 生成的代码用错库（如 RPi.GPIO） | ✅ 自动使用 wiringOP/wiringOP-Python |
+| ❌ 不知道哪些外设默认关闭 | ✅ 知道 SPI/I2C/UART/PWM 需 orangepi-config 启用 |
+| ❌ Linux 命令不带 `sudo` 权限不足 | ✅ 知道何时需要 sudo（GPIO 操作等） |
+| ❌ 不知道设备节点路径 | ✅ 精确：`/dev/spidev3.0`、`/dev/i2c-3`、`/sys/class/pwm/pwmchip20/pwm2` |
+| ❌ Debian 12 用 `eth0` 找不到网口 | ✅ 知道 Debian 12 用 `end0` |
+| ❌ 建议用 `dd` 烧录镜像 | ✅ 知道推荐用 balenaEtcher/PhoenixCard |
+| ❌ 不知道 NPU 工具链版本 | ✅ 知道 RKNN SDK v2.0.10、pegasus 转换管线 |
+
+### Claude Code 在板上的运行要求
+
+```bash
+# Claude Code 支持 aarch64 Linux，可在 Orange Pi 4 Pro 上本地运行
+# 官方安装方式（Node.js >= 18）
+curl -fsSL https://nodejs.org/dist/v20.x/node-v20.x-linux-arm64.tar.xz | sudo tar -xJ -C /usr/local --strip-components=1
+npm install -g @anthropic-ai/claude-code
+
+# 安装此 skill
+# npx skills add HBConline/orangepi4pro-skill -g -y
+# 或手动：git clone https://github.com/HBConline/orangepi4pro-skill.git
+mkdir -p ~/.agents/skills/orangepi4pro
+cp -r orangepi4pro-skill/* ~/.agents/skills/orangepi4pro/
+mkdir -p ~/.claude/skills
+ln -sf ~/.agents/skills/orangepi4pro ~/.claude/skills/orangepi4pro
+```
 
 ---
 

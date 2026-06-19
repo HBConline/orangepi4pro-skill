@@ -7,8 +7,11 @@
 [![SoC](https://img.shields.io/badge/SoC-Allwinner%20A733-red)](https://www.allwinnertech.com)
 [![Claude%20Code](https://img.shields.io/badge/Claude%20Code-skill-6C4DF6)](https://claude.ai/code)
 
-**Production-Grade Agent Skill — 生产级 AI 智能体技能**
-*Embedded Linux 嵌入式 · Edge AI 边缘智能 · GPIO Programming · Android AOSP*
+**Deploy Claude Code on Orange Pi 4 Pro — code, debug, and deploy directly on the edge**
+
+**将 Claude Code 部署到香橙派 4 Pro — 在边缘设备上直接编码、调试和部署**
+
+*Claude Code On-Device 板载开发 · GPIO 实时控制 · NPU 边缘推理 · 秒级开发迭代*
 
 </div>
 
@@ -16,9 +19,34 @@
 
 ## 📋 Overview · 概述
 
-> **EN:** A comprehensive, production-grade agent skill that transforms any Claude Code session into an **Orange Pi 4 Pro domain expert**. Encodes the entire 263-page official user manual (v1.4) from Shenzhen Xunlong Software into a structured, searchable knowledge base — spanning hardware engineering, embedded Linux, edge AI (3 TOPS NPU), and Android AOSP development.
+> **EN:** Deploy Claude Code directly on the Orange Pi 4 Pro and turn it into an **AI-powered edge development workstation**. This skill gives Claude Code intimate knowledge of every pin, driver, command, and hardware quirk — so you can develop GPIO apps, deploy NPU models, configure Linux services, and debug hardware **in seconds** with natural language. No more context-switching between datasheets, manuals, and terminals.
 >
-> **中文：** 一款生产级 AI 智能体技能，将任意 Claude Code 会话转变为**香橙派 4 Pro 领域专家**。把深圳市迅龙软件有限公司 263 页完整官方用户手册 (v1.4) 编码为结构化、可检索的知识库——覆盖硬件工程、嵌入式 Linux 系统管理、边缘 AI 推理（3 TOPS NPU）以及 Android AOSP 开发。
+> **中文：** 将 Claude Code 直接部署到香橙派 4 Pro 上，将其变为 **AI 驱动的边缘开发工作站**。此技能让 Claude Code 深度掌握每个引脚、驱动、命令和硬件特性——你可以用自然语言**在数秒内**完成 GPIO 应用开发、NPU 模型部署、Linux 服务配置和硬件调试。不再需要反复查阅数据手册、用户手册和终端命令。
+
+### 🎯 Core Use Case · 核心场景
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Orange Pi 4 Pro (Debian/Ubuntu)                    │
+│  ┌─────────────────────────────────────────────┐    │
+│  │  Claude Code + orangepi4pro skill            │    │
+│  │  ┌─────────────────────────────────────┐    │    │
+│  │  │ "写一个 DHT22 温湿度采集程序，       │    │    │
+│  │  │  每 5 秒上传到 MQTT，加 systemd 服务" │    │    │
+│  │  │                                     │    │    │
+│  │  │ Claude Code:                          │    │    │
+│  │  │  1. 直接读写 GPIO wPi2 (Pin7)        │    │    │
+│  │  │  2. 生成完整 Python 代码              │    │    │
+│  │  │  3. 安装依赖 (pip3 paho-mqtt)         │    │    │
+│  │  │  4. 创建 systemd unit 文件            │    │    │
+│  │  │  5. 测试运行                          │    │    │
+│  │  │  ✅ 5 分钟从需求到运行！               │    │    │
+│  │  └─────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────┘    │
+│  GPIO ◄──► DHT22 Sensor                             │
+│  WiFi ◄──► MQTT Broker (192.168.1.x)               │
+└─────────────────────────────────────────────────────┘
+```
 
 ### Why This Skill? · 为什么需要这个技能？
 
