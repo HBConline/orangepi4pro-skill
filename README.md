@@ -483,10 +483,13 @@ Or ask any Orange Pi 4 Pro question — the skill auto-activates via semantic ma
 
 ## 🏗️ Architecture · 架构
 
+> 🎨 [**Interactive Diagram**](architecture-diagram.html) — open in browser to see the Claude Code → GPIO/WiFi → Hardware flow
+
 ```
 orangepi4pro/
 ├── SKILL.md                                    # 2,827-line knowledge base · 11 chapters
 ├── README.md                                   # Bilingual documentation · 14 HW tables
+├── architecture-diagram.html                   # Visual flow diagram (open in browser)
 ├── OrangePi_4_Pro_A733_用户手册_v1.4(1).pdf     # Original 263-page official user manual
 └── schematics/                                 # Hardware design files · 硬件设计文件
     ├── OPI 4 PRO V1_3_2_20260109.pdf           # Full schematic (multi-page PDF, 1.35 MB)
