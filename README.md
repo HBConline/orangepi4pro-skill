@@ -26,7 +26,7 @@
 ### 🎯 Core Use Case · 核心场景
 
 <p align="center">
-  <img src="architecture-diagram.svg" alt="Orange Pi 4 Pro Edge AI Security System — Claude Code Onboard" width="900">
+  <img src="architecture-diagram.svg?v=2" alt="Orange Pi 4 Pro Edge AI Security System — Claude Code Onboard" width="900">
 </p>
 
 > 💬 **"写一个边缘 AI 安防系统：MIPI 摄像头 + NPU 行人检测，检测到人时触发警报蜂鸣器、推送手机通知，加 Flask Web 监控页面，systemd 开机自启"**
