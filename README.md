@@ -25,9 +25,28 @@
 
 ### 🎯 Core Use Case · 核心场景
 
-<p align="center">
-  <img src="architecture-diagram.svg" alt="Orange Pi 4 Pro + Claude Code Onboard Development Flow" width="860">
-</p>
+```
+┌─────────────────────────────────────────────────────┐
+│  Orange Pi 4 Pro (Debian/Ubuntu)                    │
+│  ┌─────────────────────────────────────────────┐    │
+│  │  Claude Code + orangepi4pro skill            │    │
+│  │  ┌─────────────────────────────────────┐    │    │
+│  │  │ "写一个 DHT22 温湿度采集程序，       │    │    │
+│  │  │  每 5 秒上传到 MQTT，加 systemd 服务" │    │    │
+│  │  │                                     │    │    │
+│  │  │ Claude Code:                          │    │    │
+│  │  │  1. 直接读写 GPIO wPi2 (Pin7)        │    │    │
+│  │  │  2. 生成完整 Python 代码              │    │    │
+│  │  │  3. 安装依赖 (pip3 paho-mqtt)         │    │    │
+│  │  │  4. 创建 systemd unit 文件            │    │    │
+│  │  │  5. 测试运行                          │    │    │
+│  │  │  ✅ 5 分钟从需求到运行！               │    │    │
+│  │  └─────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────┘    │
+│  GPIO ◄──► DHT22 Sensor                             │
+│  WiFi ◄──► MQTT Broker (192.168.1.x)               │
+└─────────────────────────────────────────────────────┘
+```
 
 ### Why This Skill? · 为什么需要这个技能？
 
@@ -452,13 +471,10 @@ Or ask any Orange Pi 4 Pro question — the skill auto-activates via semantic ma
 
 ## 🏗️ Architecture · 架构
 
-> 🎨 [**Interactive Diagram**](architecture-diagram.html) — open in browser to see the Claude Code → GPIO/WiFi → Hardware flow
-
 ```
 orangepi4pro/
 ├── SKILL.md                                    # 2,827-line knowledge base · 11 chapters
 ├── README.md                                   # Bilingual documentation · 14 HW tables
-├── architecture-diagram.html                   # Visual flow diagram (open in browser)
 ├── OrangePi_4_Pro_A733_用户手册_v1.4(1).pdf     # Original 263-page official user manual
 └── schematics/                                 # Hardware design files · 硬件设计文件
     ├── OPI 4 PRO V1_3_2_20260109.pdf           # Full schematic (multi-page PDF, 1.35 MB)
