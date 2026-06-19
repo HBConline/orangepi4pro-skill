@@ -340,6 +340,71 @@ test@test:~$ sudo putty
 
 ---
 
+## 第二章附录：官方工具包速查
+
+> 工具文件位于本仓库 `tools/` 目录 | 详细说明见 `tools/README.md`
+
+### 烧录工具
+
+| 工具 | 用途 | 平台 | 所在文件 |
+|------|------|------|---------|
+| **balenaEtcher** | Linux 镜像烧录（推荐） | Win/Mac/Linux/Arm64 | [balena.io/etcher](https://www.balena.io/etcher/) |
+| **Win32DiskImager** | Linux 镜像烧录（备选） | Windows | `tools/Win32DiskImager-1.0.0-binary.zip` |
+| **PhoenixCard 4.2.8** | Android 镜像烧录（唯一工具！） | Windows | `tools/PhoenixCard4.2.8.zip` |
+| **VC++ 2008 Redist** | PhoenixCard 前置依赖 | Windows | `tools/vcredist_x86.exe` |
+| **SDCardFormatter** | TF 卡格式化 | Windows | `tools/SDCardFormatterv5_WinEN.zip` |
+
+### 连接与传输工具
+
+| 工具 | 用途 | 所在文件 |
+|------|------|---------|
+| **MobaXterm Portable** | 串口调试 + SSH + SFTP | `tools/MobaXterm_Portable_v22.2.zip` |
+| **FileZilla** | SFTP 文件传输 (Win) | `tools/FileZilla_3.62.2_win64_sponsored2-setup.exe` |
+| **NoMachine arm64** | 远程桌面（安装在开发板上） | `tools/nomachine_8.5.3_1_arm64.deb` |
+
+```bash
+# NoMachine 安装（在开发板上）
+sudo dpkg -i nomachine_8.5.3_1_arm64.deb
+# 然后在 PC 上安装 NoMachine 客户端连接开发板 IP
+```
+
+### GPIO 开发库源码
+
+| 工具 | 用途 | 所在文件 |
+|------|------|---------|
+| **wiringOP** | GPIO C 语言库（next 分支） | `tools/wiringOP.tar.gz` |
+| **wiringOP-Python** | GPIO Python 绑定（next 分支） | `tools/wiringOP-Python.tar.gz` |
+
+```bash
+# 安装 wiringOP
+tar xzf wiringOP.tar.gz && cd wiringOP && sudo ./build clean && sudo ./build
+
+# 安装 wiringOP-Python
+tar xzf wiringOP-Python.tar.gz && cd wiringOP-Python && python3 generate-bindings.py > bindings.i && sudo python3 setup.py install
+```
+
+### Android 开发工具
+
+| 工具 | 用途 | 所在文件 |
+|------|------|---------|
+| **rootcheck.apk** | Android ROOT 验证 | `tools/rootcheck.apk` |
+| **usbcamera.apk** | USB 摄像头测试 | `tools/usbcamera.apk` |
+
+```bash
+# 安装 Android APK（通过 ADB）
+adb install tools/rootcheck.apk
+adb install tools/usbcamera.apk
+```
+
+### 大型工具（需单独下载）
+
+| 工具 | 大小 | 下载位置 |
+|------|------|---------|
+| **ai-sdk.tar.gz** | 1.3 GB | Orange Pi 官网 → 官方工具 |
+| **toolchains.tar.gz** | 2.0 GB | orangepi-build 自动下载，或 [清华镜像](https://mirrors.tuna.tsinghua.edu.cn/armbian-releases/_toolchain/) |
+
+---
+
 ## 第三章：Debian/Ubuntu Server 和 Xfce 桌面系统使用说明
 
 ### 3.1 已支持的 Linux 镜像类型和内核版本
