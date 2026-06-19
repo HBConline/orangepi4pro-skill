@@ -5,9 +5,6 @@ description: Use when working with Orange Pi 4 Pro (A733 chip), including hardwa
 
 # Orange Pi 4 Pro (A733) 完整开发指南
 
-> 来源：深圳市迅龙软件有限公司《Orange Pi 4 Pro 用户手册 v1.4》（263页）
-> 手册路径：`D:\data\xwechat_files\wxid_igymei9xkkm822_0c54\msg\file\2026-06\output\output\pdf\OrangePi_4_Pro_A733_用户手册_v1.4(1)\OrangePi_4_Pro_A733_用户手册_v1.4(1).md`
-
 ---
 
 ## 第一章：基本特性与硬件规格
@@ -2034,9 +2031,7 @@ pack
 
 ---
 
-> **完整手册位置：** `D:\data\xwechat_files\wxid_igymei9xkkm822_0c54\msg\file\2026-06\output\output\pdf\OrangePi_4_Pro_A733_用户手册_v1.4(1)\OrangePi_4_Pro_A733_用户手册_v1.4(1).md`
->
-> 本 SKILL 涵盖手册全部 263 页内容。查找具体步骤时可根据章节号定位到手册对应页面的截图和原始文本。
+> 参考文档：Orange Pi 4 Pro 用户手册 v1.4（263页）
 
 ---
 
@@ -2910,8 +2905,8 @@ sudo sysctl -p /etc/sysctl.d/99-security.conf
 
 ---
 
-> **完整手册位置：** `D:\data\xwechat_files\wxid_igymei9xkkm822_0c54\msg\file\2026-06\output\output\pdf\OrangePi_4_Pro_A733_用户手册_v1.4(1)\OrangePi_4_Pro_A733_用户手册_v1.4(1).md`
+> 参考文档：Orange Pi 4 Pro 用户手册 v1.4（263页）
 >
-> **原理图文件位置：** 本仓库 `schematics/` 目录（PCB V1.3.2, 2026-01-09）
+> 原理图文件位于本仓库 `schematics/` 目录（PCB V1.3.2, 2026-01-09）
 >
 > 本 SKILL 涵盖手册全部 263 页内容 + 实战项目、故障决策树、性能调优、安全加固 + 完整电路原理图与 PCB 版图。
