@@ -25,57 +25,265 @@
 
 ### 🎯 Core Use Case · 核心场景
 
-> 💬 **你（自然语言）：** *"写一个边缘 AI 安防系统：MIPI 摄像头 + NPU 行人检测，检测到人时触发蜂鸣器警报、MQTT 推送到手机，加 Flask Web 实时监控，systemd 开机自启"*
+> 💬 **你（自然语言）：**
+> *"写一个边缘 AI 安防系统：MIPI 摄像头 + NPU 行人检测，检测到人时触发蜂鸣器警报、MQTT 推送到手机，加 Flask Web 实时监控，systemd 开机自启"*
 
-<br>
+---
 
-| # | Claude Code 自动完成 | 涉及的知识域 |
-|---|---------------------|-------------|
-| **1** | `modprobe vin_v4l2` → `/dev/video8` MIPI 摄像头就绪 | MIPI-CSI 驱动、OV13850/IMX219 |
-| **2** | 生成 C++ 源码：OpenCV 采集帧 → NPU 跑 YOLOv5s | NPU 3 TOPS、RKNN SDK、Pegasus 管线 |
-| **3** | 检测到 `person` → GPIO Pin 7 (wPi2) 触发蜂鸣器 + MQTT 推送 JSON `{"person":1,"ts":"..."}` | 40-pin GPIO、wiringOP、paho-mqtt |
-| **4** | Flask Web 实时画面 `http://<ip>:8080` + 告警日志 | Python Web、Flask、OpenCV 帧推流 |
-| **5** | `ai-guard.service` → `systemctl enable --now` 开机自启 | systemd、Linux 服务管理 |
+#### Step 1 ── MIPI 摄像头驱动加载
+
+**Claude 做的事：** 从 skill 获取 OV13850/IMX219 摄像头信息 — 知道驱动模块是 `vin_v4l2`、设备节点是 `/dev/video8`、依赖 `python3-opencv` 和 `libopencv-dev`。
+
+```bash
+# Claude 在板上直接执行
+sudo modprobe vin_v4l2          # 加载 MIPI 摄像头驱动
+ls /dev/video*                   # 确认 /dev/video8 出现
+sudo apt install -y python3-opencv libopencv-dev python3-pybind11
+```
+
+| 技能提供的知识 | 来源 |
+|--------------|------|
+| MIPI-CSI 是 4-lane 接口 | SKILL.md §1.4 硬件规格 |
+| 驱动模块名 `vin_v4l2`，设备节点 `/dev/video8` | SKILL.md §3.29 |
+| OV13850 13MP / IMX219 8MP 两个型号都支持 | SKILL.md §3.29 |
+
+---
+
+#### Step 2 ── C++ NPU 推理引擎生成
+
+**Claude 做的事：** 从 skill 获取 NPU 的完整工具链 — Docker 镜像版本 `ubuntu-npu:v2.0.10`、Pegasus 四步转换管线、7 个推理示例中的 YOLOv5s。直接在板上生成 `CMakeLists.txt` 和 C++ 源码，然后板载编译。
+
+```cpp
+// ai_guard.cpp — Claude 自动生成的核心推理代码
+#include <opencv2/opencv.hpp>
+#include "v4l2_camera.h"    // MIPI 摄像头封装 (来自 /opt/v4l2_opencv_demo)
+#include "rknn_api.h"        // NPU 推理 API
+
+int main() {
+    // 1. 打开 MIPI 摄像头
+    V4L2Camera cam("/dev/video8", 640, 480);
+
+    // 2. 加载 YOLOv5s NBG 模型
+    rknn_context ctx;
+    rknn_init(&ctx, "yolov5s.nb", 0, 0, NULL);
+
+    // 3. 初始化 GPIO (蜂鸣器)
+    wiringPiSetup();
+    pinMode(2, OUTPUT);       // Pin 7 = wPi 2
+
+    // 4. MQTT 客户端
+    mosquitto_lib_init();
+    struct mosquitto *mqtt = mosquitto_new("ai-guard", true, NULL);
+    mosquitto_connect(mqtt, "192.168.1.100", 1883, 60);
+
+    while (true) {
+        cv::Mat frame = cam.capture();
+        // ... NPU 推理 → 检测 person 类别 ...
+        if (person_detected) {
+            digitalWrite(2, HIGH);  // 蜂鸣器响
+            // MQTT 推送 JSON
+            mosquitto_publish(mqtt, NULL, "home/camera/alert",
+                strlen(json), json, 0, false);
+            sleep(5);
+            digitalWrite(2, LOW);   // 蜂鸣器停
+        }
+    }
+}
+```
+
+```bash
+# Claude 在板上编译（利用板载 aarch64 GCC）
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j4                        # A733 八核并行编译
+```
+
+| 技能提供的知识 | 来源 |
+|--------------|------|
+| NPU 3 TOPS，Pegasus 量化管线 (`import → quantize → inference → export`) | §3.35.1 |
+| YOLOv5s 推理示例路径 `ai-sdk/examples/yolov5` | §3.35.2 |
+| COCO 80 类标签中 `person = 0` | §8.4（示例代码中的 CLASSES 数组） |
+| wiringPi 初始化 `wiringPiSetup()` | §3.17 |
+
+---
+
+#### Step 3 ── GPIO 警报 + MQTT 消息推送
+
+**Claude 做的事：** 知道 GPIO Pin 7 对应 wPi 编号 2、电压 3.3V；生成 MQTT 连接代码；格式化为 Home Assistant 可直接消费的 JSON。
+
+```
+gpio mode 2 out                  # wPi 2 = Pin 7，设为输出
+gpio write 2 1                   # 高电平 → 有源蜂鸣器响 (3.3V)
+gpio write 2 0                   # 低电平 → 蜂鸣器停
+```
+
+```json
+{
+  "device": "ai-guard",
+  "event": "person_detected",
+  "confidence": 0.87,
+  "bbox": [120, 45, 380, 520],
+  "timestamp": "2026-01-09T14:32:15",
+  "image": "/tmp/alert_20260109_143215.jpg"
+}
+```
+
+```bash
+# Claude 自动安装 Python MQTT 库（备用 Python 方案也有）
+pip3 install paho-mqtt
+```
+
+| 技能提供的知识 | 来源 |
+|--------------|------|
+| Pin 7 = wPi 2，3.3V 电平（⚠ 不能接 5V） | §3.15, §3.17.1 |
+| MQTT Broker 连接字符串模板 | §8.6（Docker Compose 示例） |
+| Home Assistant 可以消费这个 JSON → 手机推送 | §3.23（Home Assistant 安装） |
+
+---
+
+#### Step 4 ── Flask Web 实时监控面板
+
+**Claude 做的事：** 生成一个带图标的 Web 页面 — 采集摄像头帧 → JPEG 编码 → 浏览器 MJPEG 流展示 → 同时显示告警历史表格。
+
+```python
+# web_monitor.py — Claude 自动生成
+from flask import Flask, Response, render_template_string
+import cv2, time, json
+from collections import deque
+
+app = Flask(__name__)
+alerts = deque(maxlen=50)  # 最近 50 条告警
+cam = cv2.VideoCapture(0)  # 或 V4L2Camera("/dev/video8", 640, 480)
+
+@app.route('/')
+def index():
+    return render_template_string(HTML_TEMPLATE, alerts=list(alerts))
+
+@app.route('/stream')
+def stream():
+    def generate():
+        while True:
+            ret, frame = cam.read()
+            if ret:
+                _, jpg = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
+                yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + jpg.tobytes() + b'\r\n')
+            time.sleep(0.05)
+    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# 访问 http://<开发板IP>:8080 — 实时画面 + 告警日志
+```
+
+| 技能提供的知识 | 来源 |
+|--------------|------|
+| Flask Web 服务在板子上运行，端口 8080 | §8.5（Web 控制 GPIO 示例） |
+| OpenCV `cv2.VideoCapture` 打开摄像头 | §3.24（OpenCV 安装和版本） |
+| JPEG MJPEG 流推送方案 | §3.12.4（mjpg-streamer 参考） |
+
+---
+
+#### Step 5 ── systemd 开机自启服务
+
+**Claude 做的事：** 创建 systemd unit 文件，配置 `multi-user.target`、自动重启、硬件权限 — 让安防系统上电即运行。
+
+```ini
+# /etc/systemd/system/ai-guard.service — Claude 自动生成并写入
+[Unit]
+Description=Edge AI Security Guard
+After=network.target
+
+[Service]
+Type=simple
+User=orangepi
+WorkingDirectory=/home/orangepi/ai-guard
+ExecStart=/home/orangepi/ai-guard/build/ai_guard
+Restart=always
+RestartSec=5
+# 硬件访问权限
+DeviceAllow=/dev/video8 rw
+DeviceAllow=/dev/gpiomem rw
+DeviceAllow=/dev/mem rw
+AmbientCapabilities=CAP_SYS_RAWIO
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Claude 在板上执行
+sudo cp ai-guard.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable ai-guard     # 开机自启
+sudo systemctl start ai-guard       # 立即启动
+sudo systemctl status ai-guard      # 验证运行状态
+```
+
+| 技能提供的知识 | 来源 |
+|--------------|------|
+| systemd unit 模板，含 `DeviceAllow` 硬件权限 | §8.7 |
+| `AmbientCapabilities=CAP_SYS_RAWIO` 让普通用户访问 GPIO | §8.7 |
+| `orangepi` 用户权限配置 | §3.4.1（默认用户名） |
+
+---
+
+#### 完整架构流程
 
 ```
   👤 你（中文自然语言）
          │
          ▼
-  ┌──────────────────────────────────────────────────┐
-  │         🟠 Orange Pi 4 Pro (Debian/Ubuntu)        │
-  │                                                  │
-  │   🤖 Claude Code + orangepi4pro skill             │
-  │                                                  │
-  │   Step 1 ── MIPI 驱动 ── /dev/video8             │
-  │   Step 2 ── NPU YOLOv5s ── 推理引擎              │
-  │   Step 3 ── GPIO 蜂鸣器 + MQTT JSON 推送         │
-  │   Step 4 ── Flask Web ── 实时监控页面            │
-  │   Step 5 ── systemd 服务 ── 开机自启             │
-  │                                                  │
-  │              ✅ 10 分钟：需求 → 上线              │
-  └──────────────────┬───────────────────────────────┘
-                     │
-        ┌────────────┼────────────────┐
-        │            │                │
-   ┌────▼────┐  ┌────▼────┐   ┌──────▼──────┐
-   │ MIPI    │  │ 40-Pin  │   │  Wi-Fi 6    │
-   │ Camera  │  │ GPIO    │   │  wlan0      │
-   │ OV13850 │  │ Pin 7   │   │             │
-   └────┬────┘  └────┬────┘   └──────┬──────┘
-        │            │                │
-   ┌────▼────┐  ┌────▼────┐   ┌──────▼──────┐
-   │ 3 TOPS  │  │ Buzzer  │   │ MQTT Broker │
-   │  NPU    │  │ 蜂鸣器   │   │ :1883       │
-   │YOLOv5s  │  │ 🔊      │   │             │
-   └─────────┘  └─────────┘   └──────┬──────┘
-                                     │
-                                ┌────▼────┐
-                                │  📱 手机 │
-                                │  推送通知 │
-                                └─────────┘
+  ┌──────────────────────────────────────────────────────────────┐
+  │             🟠 Orange Pi 4 Pro (Debian/Ubuntu)                │
+  │                                                              │
+  │   🤖 Claude Code + orangepi4pro skill                        │
+  │                                                              │
+  │   ┌─ ① ──────────────────────────────────────────────┐      │
+  │   │ modprobe vin_v4l2  →  /dev/video8 就绪            │      │
+  │   │ apt install python3-opencv libopencv-dev           │      │
+  │   └──────────────────────────────────────────────────┘      │
+  │                         │                                     │
+  │   ┌─ ② ────────────────▼─────────────────────────────┐      │
+  │   │ 生成 main.cpp + CMakeLists.txt                     │      │
+  │   │ OpenCV 采集 ──► NPU YOLOv5s 推理 ──► person?      │      │
+  │   │ cmake .. && make -j4  (板载 aarch64 编译)          │      │
+  │   └───────────────────┬──────────────────────────────┘      │
+  │                       │                                       │
+  │         ┌─────────────┼─────────────┐                        │
+  │         │             │             │                         │
+  │   ┌─────▼──③──┐  ┌───▼──③──┐  ┌───▼────③──────┐             │
+  │   │ GPIO Pin 7 │  │  MQTT   │  │  Flask Web    │             │
+  │   │ wPi 2 HIGH │  │  JSON   │  │  :8080        │             │
+  │   │ 蜂鸣器  🔊  │  │ 推送   │  │ 实时监控画面   │             │
+  │   └────────────┘  └────────┘  └───────────────┘             │
+  │                                                              │
+  │   ┌─ ⑤ ──────────────────────────────────────────────┐      │
+  │   │ ai-guard.service → systemctl enable --now          │      │
+  │   │ 上电即运行，崩溃自动重启，日志 journalctl          │      │
+  │   └──────────────────────────────────────────────────┘      │
+  │                                                              │
+  │            ✅ 10 分钟：自然语言 → 上线系统                    │
+  └──────────────────────┬─────────────────────────────────────┘
+                         │
+          ┌──────────────┼──────────────────┐
+          │              │                  │
+     ┌────▼────┐    ┌────▼────┐      ┌──────▼──────┐
+     │ MIPI    │    │ 40-Pin  │      │  Wi-Fi 6    │
+     │ Camera  │    │  GPIO   │      │  wlan0      │
+     │ OV13850 │    │  Pin 7  │      │             │
+     └────┬────┘    └────┬────┘      └──────┬──────┘
+          │              │                  │
+     ┌────▼────┐    ┌────▼────┐      ┌──────▼──────┐
+     │ 3 TOPS  │    │ Buzzer  │      │ MQTT Broker │
+     │  NPU    │    │ 蜂鸣器   │      │ :1883       │
+     │YOLOv5s  │    │  🔊     │      │             │
+     └─────────┘    └─────────┘      └──────┬──────┘
+                                            │
+                                       ┌────▼────┐
+                                       │ 📱 手机  │
+                                       │ 推送通知  │
+                                       └─────────┘
 ```
 
-> ⚡ **从自然语言到完整边缘AI系统上线——只需一次对话。** 不查阅手册、不搜索引脚、不调试驱动。
+> ⚡ **10 分钟，一次对话：** Claude Code 自动查阅原理图引脚映射 → 加载内核驱动 → 生成 C++/Python 源码 → 板载编译 → 配置 Web 服务 → 写入 systemd 单元 → 系统上线。**不翻阅手册、不搜索引脚、不调试驱动。**
 
 ### Why This Skill? · 为什么需要这个技能？
 
