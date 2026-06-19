@@ -25,13 +25,57 @@
 
 ### 🎯 Core Use Case · 核心场景
 
-<p align="center">
-  <img src="architecture-diagram.svg?v=2" alt="Orange Pi 4 Pro Edge AI Security System — Claude Code Onboard" width="900">
-</p>
+> 💬 **你（自然语言）：** *"写一个边缘 AI 安防系统：MIPI 摄像头 + NPU 行人检测，检测到人时触发蜂鸣器警报、MQTT 推送到手机，加 Flask Web 实时监控，systemd 开机自启"*
 
-> 💬 **"写一个边缘 AI 安防系统：MIPI 摄像头 + NPU 行人检测，检测到人时触发警报蜂鸣器、推送手机通知，加 Flask Web 监控页面，systemd 开机自启"**
->
-> 🤖 Claude Code 10 分钟完成：MIPI 驱动加载 → NPU YOLOv5s 推理 → GPIO 蜂鸣器 → MQTT 推送 JSON → Flask Web → systemd 服务
+<br>
+
+| # | Claude Code 自动完成 | 涉及的知识域 |
+|---|---------------------|-------------|
+| **1** | `modprobe vin_v4l2` → `/dev/video8` MIPI 摄像头就绪 | MIPI-CSI 驱动、OV13850/IMX219 |
+| **2** | 生成 C++ 源码：OpenCV 采集帧 → NPU 跑 YOLOv5s | NPU 3 TOPS、RKNN SDK、Pegasus 管线 |
+| **3** | 检测到 `person` → GPIO Pin 7 (wPi2) 触发蜂鸣器 + MQTT 推送 JSON `{"person":1,"ts":"..."}` | 40-pin GPIO、wiringOP、paho-mqtt |
+| **4** | Flask Web 实时画面 `http://<ip>:8080` + 告警日志 | Python Web、Flask、OpenCV 帧推流 |
+| **5** | `ai-guard.service` → `systemctl enable --now` 开机自启 | systemd、Linux 服务管理 |
+
+```
+  👤 你（中文自然语言）
+         │
+         ▼
+  ┌──────────────────────────────────────────────────┐
+  │         🟠 Orange Pi 4 Pro (Debian/Ubuntu)        │
+  │                                                  │
+  │   🤖 Claude Code + orangepi4pro skill             │
+  │                                                  │
+  │   Step 1 ── MIPI 驱动 ── /dev/video8             │
+  │   Step 2 ── NPU YOLOv5s ── 推理引擎              │
+  │   Step 3 ── GPIO 蜂鸣器 + MQTT JSON 推送         │
+  │   Step 4 ── Flask Web ── 实时监控页面            │
+  │   Step 5 ── systemd 服务 ── 开机自启             │
+  │                                                  │
+  │              ✅ 10 分钟：需求 → 上线              │
+  └──────────────────┬───────────────────────────────┘
+                     │
+        ┌────────────┼────────────────┐
+        │            │                │
+   ┌────▼────┐  ┌────▼────┐   ┌──────▼──────┐
+   │ MIPI    │  │ 40-Pin  │   │  Wi-Fi 6    │
+   │ Camera  │  │ GPIO    │   │  wlan0      │
+   │ OV13850 │  │ Pin 7   │   │             │
+   └────┬────┘  └────┬────┘   └──────┬──────┘
+        │            │                │
+   ┌────▼────┐  ┌────▼────┐   ┌──────▼──────┐
+   │ 3 TOPS  │  │ Buzzer  │   │ MQTT Broker │
+   │  NPU    │  │ 蜂鸣器   │   │ :1883       │
+   │YOLOv5s  │  │ 🔊      │   │             │
+   └─────────┘  └─────────┘   └──────┬──────┘
+                                     │
+                                ┌────▼────┐
+                                │  📱 手机 │
+                                │  推送通知 │
+                                └─────────┘
+```
+
+> ⚡ **从自然语言到完整边缘AI系统上线——只需一次对话。** 不查阅手册、不搜索引脚、不调试驱动。
 
 ### Why This Skill? · 为什么需要这个技能？
 
