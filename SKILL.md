@@ -2972,6 +2972,385 @@ sudo sysctl -p /etc/sysctl.d/99-security.conf
 
 ---
 
+## 第十三章：常见传感器与模块接线大全
+
+> 以下所有接线均直接可用，wPi 编号对应 wiringOP。使用 `gpio readall` 查看完整映射。
+
+### 13.1 温湿度传感器
+
+| 传感器 | VCC | GND | DATA | 其他引脚 | 协议 | 注意事项 |
+|--------|-----|-----|------|---------|------|---------|
+| **DHT11** | Pin 2 (5V) | Pin 6 (GND) | Pin 7 (wPi 2) | — | 单总线 | 采样间隔 ≥1 秒 |
+| **DHT22** | Pin 2 (5V) | Pin 6 (GND) | Pin 7 (wPi 2) | — | 单总线 | 采样间隔 ≥2 秒，精度 ±0.5°C |
+| **DS18B20** | Pin 2 (5V) | Pin 6 (GND) | Pin 7 (wPi 2) | 4.7kΩ 上拉 | 1-Wire | 需启用 w1-gpio overlay |
+| **AHT10** | Pin 1 (3.3V) | Pin 9 (GND) | SDA→Pin 3 (I2C0) | SCL→Pin 5 (I2C0) | I2C | 地址 0x38，需启用 I2C0 |
+| **SHT30** | Pin 1 (3.3V) | Pin 9 (GND) | SDA→Pin 3 | SCL→Pin 5 | I2C | 地址 0x44/0x45 |
+| **BME280** | Pin 1 (3.3V) | Pin 9 (GND) | SDA→Pin 3 | SCL→Pin 5 | I2C | 地址 0x76/0x77，温度+湿度+气压 |
+
+**DS18B20 启用 1-Wire：**
+```bash
+sudo orangepi-config  # System → Hardware → 选中 w1-gpio → Save → Reboot
+# 设备路径：/sys/bus/w1/devices/28-xxxxxxxxxxxx/w1_slave
+```
+
+### 13.2 距离与运动传感器
+
+| 传感器 | VCC | GND | TRIG | ECHO | 其他 | 协议 | 注意事项 |
+|--------|-----|-----|------|------|------|------|---------|
+| **HC-SR04** | Pin 2 (5V) | Pin 6 (GND) | Pin 11 (wPi 3) | Pin 13 (wPi 4) | — | GPIO 脉冲 | ECHO 需分压！直连 5V 会烧 GPIO |
+| **HC-SR04 安全接法** | — | — | Pin 11 | 分压到 3.3V → Pin 13 | 2×1kΩ 电阻 | — | ECHO→分压→GPIO |
+| **VL53L0X** | Pin 1 (3.3V) | Pin 9 (GND) | SDA→Pin 3 | SCL→Pin 5 | XSHUT→任意 GPIO | I2C | 地址 0x29，ToF 激光测距 |
+| **HC-SR501** | Pin 2 (5V) | Pin 6 (GND) | Pin 15 (wPi 5) | — | — | GPIO 数字 | 人体红外 PIR，OUT=3.3V 直连安全 |
+
+> ⚠️ **HC-SR04 ECHO 分压电路：** ECHO→1kΩ→GPIO，GPIO→1kΩ→GND。两个 1kΩ 分压 5V→2.5V（安全）。
+
+### 13.3 显示模块
+
+| 模块 | VCC | GND | SDA | SCL | 其他 | 协议 | 地址 |
+|------|-----|-----|-----|-----|------|------|------|
+| **SSD1306 OLED (128×64)** | Pin 1 (3.3V) | Pin 9 (GND) | Pin 3 | Pin 5 | — | I2C | 0x3C |
+| **SSH1106 OLED (128×64)** | Pin 1 (3.3V) | Pin 9 (GND) | Pin 3 | Pin 5 | — | I2C | 0x3C(SPI 可选) |
+| **LCD1602 (I2C 转接板)** | Pin 2 (5V) | Pin 6 (GND) | Pin 3 | Pin 5 | — | I2C | 0x27/0x3F |
+| **LCD1602 (4-bit)** | Pin 2 (5V) | Pin 6 (GND) | — | — | RS/EN/D4-D7→Pin 29/31/33/35/37/32 | GPIO | V0 接电位器调对比度 |
+| **TM1637 数码管** | Pin 1 (3.3V) | Pin 9 (GND) | CLK→Pin 11 | DIO→Pin 13 | — | GPIO 模拟 | CLK/DIO 可换引脚 |
+| **MAX7219 8×8 LED** | Pin 2 (5V) | Pin 6 (GND) | DIN→Pin 19 (MOSI) | CS→Pin 24 (CS0) | CLK→Pin 23 (CLK) | SPI | 需启用 SPI3 |
+
+### 13.4 环境传感器
+
+| 传感器 | VCC | GND | 信号线 | 协议 | 地址/说明 |
+|--------|-----|-----|--------|------|----------|
+| **BH1750 光照** | Pin 1 (3.3V) | Pin 9 (GND) | SDA→Pin 3, SCL→Pin 5 | I2C | 0x23/0x5C |
+| **CCS811 空气质量** | Pin 1 (3.3V) | Pin 9 (GND) | SDA→Pin 3, SCL→Pin 5 | I2C | 0x5A/0x5B，需预热 20 分钟 |
+| **PMS5003 PM2.5** | Pin 2 (5V) | Pin 6 (GND) | TX→Pin 8 (UART7 TX) | UART | 9600 baud，被动模式 |
+| **MQ-2 烟雾** | Pin 2 (5V) | Pin 6 (GND) | AO→MCP3008 ADC | 模拟 | 需 ADC 模块，预热 ≥24h |
+| **BMP280 气压** | Pin 1 (3.3V) | Pin 9 (GND) | SDA→Pin 3, SCL→Pin 5 | I2C | 0x76/0x77 |
+| **MPU6050 六轴** | Pin 1 (3.3V) | Pin 9 (GND) | SDA→Pin 3, SCL→Pin 5 | I2C | 0x68 |
+
+### 13.5 继电器与电机驱动
+
+| 模块 | VCC | GND | IN/控制 | 负载 | 注意事项 |
+|------|-----|-----|---------|------|---------|
+| **单路继电器 (SRD-05VDC)** | Pin 4 (5V, JD-VCC) | Pin 6 (GND) | IN→Pin 11 (wPi 3) | 最大 10A/250VAC | 低电平触发，需共地 |
+| **L298N 电机驱动** | 外部 12V | GND 共地 | IN1-IN4→Pin 11/13/15/16 | 2 路直流电机 | 逻辑供电可接 Pin 2 (5V) |
+| **MG996R 舵机** | 外部 5V/2A | GND 共地 | PWM→Pin 7 (SPWM0-2) | 扭矩 10kg·cm | 周期 20ms，脉宽 0.5-2.5ms |
+| **ULN2003 步进电机** | Pin 2 (5V) | Pin 6 (GND) | IN1-IN4→Pin 11/13/15/16 | 28BYJ-48 | 整步/半步模式 |
+| **A4988 步进驱动** | 外部 12V | GND 共地 | STEP→Pin 11, DIR→Pin 13 | NEMA17 | MS1-MS3 设置微步 |
+
+### 13.6 通信模块
+
+| 模块 | VCC | GND | TX/RX | 其他 | 协议 | 注意事项 |
+|------|-----|-----|-------|------|------|---------|
+| **SIM800L GSM** | 外部 4.2V/2A | GND 共地 | TX→Pin 10 (UART7 RX) | RX→Pin 8 (UART7 TX) | UART | 不可用板载 5V，峰值 2A |
+| **NEO-6M GPS** | Pin 1 (3.3V) | Pin 9 (GND) | TX→Pin 10 (UART7 RX) | — | UART | 9600 baud，需天线 |
+| **RC522 RFID** | Pin 1 (3.3V) | Pin 9 (GND) | — | SDA→Pin 24 (CS0), SCK→Pin 23, MOSI→Pin 19, MISO→Pin 21 | SPI | RST 接任意 GPIO |
+| **CAN MCP2515** | Pin 2 (5V) | Pin 6 (GND) | — | SCK→Pin 23, SI→Pin 19, SO→Pin 21, CS→Pin 24 | SPI | 需 can 内核支持 |
+
+### 13.7 传感器接线速记
+
+```
+温度类     → I2C0 (Pin 3 SDA + Pin 5 SCL)：AHT10/BME280/SHT30/BMP280
+单总线     → Pin 7 (wPi 2)：DHT11/DHT22/DS18B20
+距离类     → Pin 11+13：HC-SR04  |  I2C0 Pin 3+5：VL53L0X
+显示类     → I2C0 Pin 3+5：SSD1306/LCD1602  |  SPI3 Pin 19+21+23+24：MAX7219
+继电器/MOS → Pin 11 (wPi 3)：开关控制  |  Pin 7 (SPWM0-2)：舵机
+GPS/GSM    → UART7：Pin 8 (TX) + Pin 10 (RX)
+RFID/CAN   → SPI3：Pin 19+21+23+24 (MOSI+MISO+CLK+CS0)
+```
+
+---
+
+## 第十四章：Claude Code 板载开发模式与代码模板
+
+### 14.1 标准开发循环
+
+```
+用户提出需求
+  → Claude Code 读取 skill 获取引脚/驱动/命令
+  → 直接读写文件系统生成代码
+  → 执行编译/安装命令
+  → 运行测试、查看日志
+  → 根据输出修正
+  → 创建 systemd 服务（可选）
+```
+
+### 14.2 新建项目模板（C 语言 GPIO）
+
+```bash
+# Claude Code 在板上自动执行的步骤：
+
+# 1. 创建项目目录
+mkdir -p ~/my-gpio-project && cd ~/my-gpio-project
+
+# 2. 生成 CMakeLists.txt
+cat > CMakeLists.txt << 'EOF'
+cmake_minimum_required(VERSION 3.10)
+project(my_gpio_project C)
+set(CMAKE_C_STANDARD 11)
+find_library(WIRINGPI_LIB wiringPi)
+add_executable(app main.c)
+target_link_libraries(app ${WIRINGPI_LIB} pthread)
+EOF
+
+# 3. 生成 main.c（GPIO 控制）
+cat > main.c << 'EOF'
+#include <wiringPi.h>
+#include <stdio.h>
+#include <signal.h>
+#include <stdlib.h>
+
+volatile int running = 1;
+void cleanup(int sig) { running = 0; }
+
+int main() {
+    signal(SIGINT, cleanup);
+    signal(SIGTERM, cleanup);
+    if (wiringPiSetup() == -1) { return 1; }
+    pinMode(2, OUTPUT);     // Pin 7 = wPi 2
+    pinMode(3, INPUT);      // Pin 11 = wPi 3，读按钮
+    pullUpDnControl(3, PUD_UP);  // 上拉
+
+    printf("GPIO 项目启动，Ctrl+C 退出\n");
+    while (running) {
+        int btn = digitalRead(3);
+        digitalWrite(2, btn == LOW ? HIGH : LOW);  // 按钮按下→LED亮
+        delay(50);
+    }
+    digitalWrite(2, LOW);
+    printf("清理退出\n");
+    return 0;
+}
+EOF
+
+# 4. 编译运行
+mkdir build && cd build
+cmake .. && make
+sudo ./app
+```
+
+### 14.3 新建项目模板（Python GPIO + MQTT）
+
+```python
+# Claude Code 自动生成的 Python MQTT + GPIO 项目
+# ~/mqtt-sensor/main.py
+
+import wiringpi
+import paho.mqtt.client as mqtt
+import json, time, socket
+
+# ── 硬件配置 ──
+SENSOR_PIN = 2          # wPi 2 = Pin 7
+ALERT_PIN = 5           # wPi 5 = Pin 15
+MQTT_BROKER = "192.168.1.100"
+MQTT_PORT = 1883
+MQTT_TOPIC = "home/device/data"
+CLIENT_ID = f"opi4pro_{socket.gethostname()}"
+
+# ── 初始化 ──
+wiringpi.wiringPiSetup()
+wiringpi.pinMode(SENSOR_PIN, wiringpi.INPUT)
+wiringpi.pinMode(ALERT_PIN, wiringpi.OUTPUT)
+
+client = mqtt.Client(client_id=CLIENT_ID)
+client.connect(MQTT_BROKER, MQTT_PORT, 60)
+
+def publish(data):
+    payload = json.dumps({"ts": time.time(), "client": CLIENT_ID, **data})
+    client.publish(MQTT_TOPIC, payload)
+    print(f"[MQTT] {payload}")
+
+# ── 主循环 ──
+try:
+    publish({"status": "online"})
+    while True:
+        val = wiringpi.digitalRead(SENSOR_PIN)
+        wiringpi.digitalWrite(ALERT_PIN, val)
+        publish({"sensor_value": val})
+        time.sleep(5)
+except KeyboardInterrupt:
+    publish({"status": "offline"})
+    client.disconnect()
+```
+
+### 14.4 实时调试模式
+
+```
+👤 你：GPIO Pin 7 输出不干活
+
+🤖 Claude Code：
+  1. sudo gpio readall
+     → 确认 Pin 7 映射到 wPi 2，当前模式 IN
+  2. gpio mode 2 out
+     → 设为输出模式
+  3. gpio write 2 1
+     → 输出高电平
+  4. 用万用表 DC 档测量 Pin 7 和 GND
+     → 应有 3.3V
+  5. 检查接线：GPIO→电阻（220Ω-1kΩ）→LED→GND
+     → LED 长脚 (+), 短脚 (-)
+  6. 若仍不亮：换 LED、测电阻、检查杜邦线
+```
+
+### 14.5 Claude Code 板载能力清单
+
+| 能力 | 说明 | 示例 |
+|------|------|------|
+| **文件操作** | 读/写/搜索项目代码 | 生成 CMakeLists.txt、修改内核配置 |
+| **Shell 执行** | 运行命令、安装软件包 | `apt install`, `cmake`, `make`, `systemctl` |
+| **GPIO 直接操作** | 通过 wiringOP 读写引脚 | `gpio write 2 1`, Python wiringpi |
+| **I2C 设备通信** | 扫描总线、读写寄存器 | `i2cdetect -y 0`, Python smbus2 |
+| **SPI 传输** | 操作 SPI 设备 | `spidev_test -D /dev/spidev3.0` |
+| **编译代码** | 板载 GCC/G++ 编译 | `gcc -o app main.c -lwiringPi` |
+| **systemd 管理** | 创建/启停服务 | `systemctl enable my-app` |
+| **网络配置** | WiFi、静态 IP、热点 | `nmcli`, `create_ap` |
+| **Docker 操作** | 运行容器、compose | `docker compose up -d` |
+| **内核模块** | 加载/卸载驱动 | `modprobe vin_v4l2`, `insmod hello.ko` |
+| **DT Overlay** | 配置设备树 | `orangepi-config` |
+| **性能分析** | CPU/内存/温度监控 | `top`, `free -h`, 读取 thermal_zone |
+
+### 14.6 常见开发任务速成
+
+**"写个守护进程监控 CPU 温度，超过 80°C 时打开风扇"**
+```
+Claude Code 直接：生成 bash 脚本 → 存入 /usr/local/bin/cpu-fan.sh
+→ 创建 systemd timer：每 10 秒检查一次温度
+→ GPIO Pin 15 控制 5V 风扇（通过 NPN 三极管）
+```
+
+**"把板子做成 MQTT 网关，串口收到的传感器数据转发到 MQTT"**
+```
+Claude Code 直接：生成 Python 脚本读 /dev/ttyS7
+→ 解析数据 → paho-mqtt 发布到 broker
+→ systemd 服务开机自启
+```
+
+**"这个项目用 git 管理，每次改完能自动编译测试"**
+```
+Claude Code 直接：生成 Makefile/CMakeLists.txt
+→ 创建 .gitignore → git init → git add && git commit
+→ 创建 pre-commit hook（编译检查）
+```
+
+---
+
+## 第十五章：交叉编译与远程部署
+
+### 15.1 从 PC 交叉编译到 Orange Pi 4 Pro
+
+**主机要求：** Ubuntu 22.04 X64 + orangepi-build 工具链
+
+```bash
+# 1. 下载工具链（同 orangepi-build 编译时自动下载）
+# 位置：orangepi-build/toolchains/
+# 用于 aarch64：gcc-arm-11.2-2022.02-x86_64-aarch64-none-linux-gnu
+
+# 2. 设置环境变量
+export CC=~/orangepi-build/toolchains/gcc-arm-11.2-2022.02-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-gcc
+export CXX=~/orangepi-build/toolchains/gcc-arm-11.2-2022.02-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-g++
+export SYSROOT=~/orangepi-build/toolchains/gcc-arm-11.2-2022.02-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/sysroot
+
+# 3. CMake 交叉编译配置
+cat > aarch64-toolchain.cmake << 'EOF'
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
+set(CMAKE_C_COMPILER aarch64-none-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER aarch64-none-linux-gnu-g++)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+EOF
+
+# 4. 编译
+mkdir build-cross && cd build-cross
+cmake .. -DCMAKE_TOOLCHAIN_FILE=../aarch64-toolchain.cmake
+make -j$(nproc)
+```
+
+### 15.2 远程部署脚本模板
+
+```bash
+#!/bin/bash
+# deploy.sh — PC 编译后自动部署到 Orange Pi 4 Pro
+OPI_IP="192.168.1.110"
+OPI_USER="orangepi"
+OPI_PATH="/home/orangepi/my-app"
+
+echo "=== 交叉编译 ==="
+cmake .. -DCMAKE_TOOLCHAIN_FILE=../aarch64-toolchain.cmake && make -j4
+
+echo "=== 停止远程服务 ==="
+ssh $OPI_USER@$OPI_IP "sudo systemctl stop my-app"
+
+echo "=== 上传二进制 ==="
+scp my-app $OPI_USER@$OPI_IP:$OPI_PATH/
+
+echo "=== 启动服务 ==="
+ssh $OPI_USER@$OPI_IP "sudo systemctl start my-app && sudo systemctl status my-app"
+
+echo "=== 部署完成 ==="
+```
+
+### 15.3 SSH 免密部署配置
+
+```bash
+# 在 PC 上执行
+ssh-keygen -t ed25519 -f ~/.ssh/opi4pro-deploy
+ssh-copy-id -i ~/.ssh/opi4pro-deploy.pub orangepi@192.168.1.110
+
+# 配置 SSH alias
+cat >> ~/.ssh/config << 'EOF'
+Host opi4pro
+    HostName 192.168.1.110
+    User orangepi
+    IdentityFile ~/.ssh/opi4pro-deploy
+    StrictHostKeyChecking no
+EOF
+
+# 现在可以直接：
+# scp file opi4pro:~/  或  ssh opi4pro
+```
+
+### 15.4 rsync 增量同步开发
+
+```bash
+# 实时同步源码到开发板（适合解释型语言 Python/Node.js）
+rsync -avz --exclude '.git' --exclude '__pycache__' \
+    ~/my-project/ opi4pro:~/my-project/
+
+# 自动同步脚本（文件变化时触发）
+# 需要 inotify-tools：sudo apt install inotify-tools
+while inotifywait -r -e modify,create,delete ~/my-project; do
+    rsync -avz --exclude '.git' ~/my-project/ opi4pro:~/my-project/
+    echo "$(date): synced"
+done
+```
+
+### 15.5 VS Code Remote-SSH 开发
+
+```bash
+# 在 VS Code 中安装 Remote-SSH 插件
+# .ssh/config 配置好 opi4pro host 后
+# Ctrl+Shift+P → Remote-SSH: Connect to Host → opi4pro
+# VS Code 自动在开发板上安装 vscode-server (aarch64)
+# 直接在 VS Code 中编辑、终端、调试板载代码
+```
+
+### 15.6 GDB 远程调试
+
+```bash
+# 在开发板上安装 gdbserver
+sudo apt install -y gdbserver
+
+# 在开发板上启动
+gdbserver :2345 ./my-app
+
+# 在 PC 上用交叉 GDB 连接
+aarch64-none-linux-gnu-gdb ./my-app
+(gdb) target remote 192.168.1.110:2345
+(gdb) continue
+```
+
+---
+
 > 参考文档：Orange Pi 4 Pro 用户手册 v1.4（263页）
 >
 > 原理图文件位于本仓库 `schematics/` 目录（PCB V1.3.2, 2026-01-09）
