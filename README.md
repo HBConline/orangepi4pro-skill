@@ -17,6 +17,19 @@
 
 ---
 
+### 🚀 一键部署
+
+```bash
+# 在 Orange Pi 4 Pro 上执行（或任意 PC）
+git clone https://github.com/HBConline/orangepi4pro-skill.git
+mkdir -p ~/.agents/skills/orangepi4pro && cp -r orangepi4pro-skill/* ~/.agents/skills/orangepi4pro/
+mkdir -p ~/.claude/skills && ln -sf ~/.agents/skills/orangepi4pro ~/.claude/skills/orangepi4pro
+```
+
+> 安装后直接在 Claude Code 中说需求：`/orangepi4pro 写一个 GPIO 控制 LED 程序`
+
+---
+
 ## 📋 Overview · 概述
 
 > **EN:** Deploy Claude Code directly on the Orange Pi 4 Pro and turn it into an **AI-powered edge development workstation**. This skill gives Claude Code intimate knowledge of every pin, driver, command, and hardware quirk — so you can develop GPIO apps, deploy NPU models, configure Linux services, and debug hardware **in seconds** with natural language. No more context-switching between datasheets, manuals, and terminals.
