@@ -227,50 +227,100 @@ sudo systemctl status ai-guard      # 验证运行状态
 
 #### 完整架构流程
 
-```mermaid
-flowchart TB
-    subgraph INPUT[" "]
-        U["👤 你（自然语言）<br/>写一个边缘 AI 安防系统……"]
-    end
-
-    subgraph BOARD["🟠 Orange Pi 4 Pro — Debian/Ubuntu — A733 2.0GHz — 3 TOPS NPU"]
-        direction TB
-        C["🤖 Claude Code ← orangepi4pro skill<br/>获取：引脚映射 · 驱动状态 · NPU 管线"]
-
-        S1["① MIPI 摄像头驱动<br/>modprobe vin_v4l2 → /dev/video8<br/>apt install python3-opencv"]
-        S2["② C++ NPU 推理引擎（板载编译）<br/>生成 ai_guard.cpp + CMakeLists.txt<br/>V4L2Camera → rknn_init(YOLOv5s)<br/>cmake .. && make -j4"]
-        S3a["③a GPIO<br/>Pin7 / wPi2<br/>gpio write 2 1<br/>→ 蜂鸣器 🔊"]
-        S3b["③b MQTT<br/>topic: home/camera/alert<br/>{"person":1, "conf":0.87}"]
-        S3c["③c Flask Web<br/>:8080 MJPEG 流<br/>实时监控"]
-        S4["④ Web 监控页面<br/>Flask / MJPEG + /api JSON<br/>http://&lt;ip&gt;:8080"]
-        S5["⑤ systemd 开机自启<br/>ai-guard.service<br/>systemctl enable --now<br/>● active running"]
-
-        C --> S1 --> S2 --> S3a & S3b & S3c --> S4 --> S5
-    end
-
-    subgraph HW["硬件层"]
-        direction LR
-        subgraph C1["Camera"]
-            M["MIPI Camera<br/>OV13850 / IMX219<br/>/dev/video8<br/>4-lane CSI"]
-            NPU["3 TOPS NPU<br/>YOLOv5s · person<br/>Pegasus → NBG"]
-            M --> NPU
-        end
-        subgraph C2["GPIO"]
-            G["40-Pin GPIO<br/>Pin 7 / 11 / 13 / 15<br/>3.3V 电平"]
-            BZ["Buzzer 蜂鸣器<br/>有源 3.3V<br/>HIGH=响 LOW=停"]
-            G --> BZ
-        end
-        subgraph C3["Network"]
-            W["Wi-Fi 6 + Ethernet<br/>wlan0 · end0<br/>nmcli · create_ap"]
-            MQ["MQTT Broker<br/>192.168.1.100:1883<br/>topic: home/camera"]
-            OUT["📱 Home Assistant 推送<br/>🖥️ Flask Web :8080<br/>📊 MQTT JSON 集成"]
-            W --> MQ --> OUT
-        end
-    end
-
-    INPUT --> BOARD
-    BOARD --> HW
 ```
+                       ┌────────────────────────────┐
+                       │  👤 你（中文自然语言）      │
+                       │  "写一个边缘 AI 安防系统..." │
+                       └─────────────┬──────────────┘
+                                     │
+               ┌─────────────────────┼─────────────────────┐
+               │  🟠 Orange Pi 4 Pro (Debian / Ubuntu)     │
+               │  89×56mm · A733 2.0GHz · 3 TOPS NPU      │
+               │──────────────────────────────────────────│
+               │  🤖 Claude Code  ←  orangepi4pro skill    │
+               │  获取：引脚映射 · 驱动状态 · NPU 管线     │
+               │                                          │
+               │  ┌────────────────────────────────────┐  │
+               │  │  ①  MIPI 摄像头驱动                 │  │
+               │  │  ───────────────────               │  │
+               │  │  # modprobe vin_v4l2                │  │
+               │  │  # ls /dev/video8      确认设备     │  │
+               │  │  # apt install python3-opencv \     │  │
+               │  │    libopencv-dev python3-pybind11   │  │
+               │  │  📡 4-lane MIPI-CSI → 就绪          │  │
+               │  └─────────────────┬──────────────────┘  │
+               │                    │                     │
+               │  ┌─────────────────▼──────────────────┐  │
+               │  │  ②  C++ NPU 推理引擎（板载编译）    │  │
+               │  │  ─────────────────────────────      │  │
+               │  │  生成：ai_guard.cpp + CMakeLists    │  │
+               │  │  ┌────────────────────────────┐    │  │
+               │  │  │ V4L2Camera cam("/dev/       │    │  │
+               │  │  │   video8", 640, 480);       │    │  │
+               │  │  │ rknn_init(&ctx,              │    │  │
+               │  │  │   "yolov5s.nb", ...);        │    │  │
+               │  │  │ if (person) {                │    │  │
+               │  │  │   digitalWrite(2, HIGH);     │    │  │
+               │  │  │   mqtt_publish(json);        │    │  │
+               │  │  │ }                            │    │  │
+               │  │  └────────────────────────────┘    │  │
+               │  │  # cmake .. && make -j4             │  │
+               │  └─────────────────┬──────────────────┘  │
+               │                    │                     │
+               │     ┌──────────────┼──────────────┐      │
+               │     │              │              │      │
+               │  ┌──▼──────┐ ┌────▼─────┐ ┌──────▼──┐  │
+               │  │ ③a GPIO  │ │ ③b MQTT  │ │ ③c Web  │  │
+               │  │ ──────── │ │ ──────── │ │ ─────── │  │
+               │  │ Pin7     │ │ topic:   │ │ Flask   │  │
+               │  │ wPi2 = 1 │ │ home/    │ │ :8080   │  │
+               │  │ 蜂鸣器🔊 │ │ camera/  │ │ MJPEG流 │  │
+               │  │          │ │ alert    │ │         │  │
+               │  └─────────┘ └──────────┘ └─────────┘  │
+               │                                          │
+               │  ┌────────────────────────────────────┐  │
+               │  │  ④  Flask Web 监控页面              │  │
+               │  │  ───────────────────               │  │
+               │  │  /      → MJPEG 实时画面            │  │
+               │  │  /api   → 告警历史 JSON             │  │
+               │  │  http://&lt;ip&gt;:8080 ← 手机/PC    │  │
+               │  └────────────────────────────────────┘  │
+               │                                          │
+               │  ┌────────────────────────────────────┐  │
+               │  │  ⑤  systemd 开机自启               │  │
+               │  │  ───────────────────               │  │
+               │  │  [Service]                          │  │
+               │  │  ExecStart=.../ai_guard             │  │
+               │  │  Restart=always  RestartSec=5       │  │
+               │  │  DeviceAllow=/dev/video8 rw         │  │
+               │  │  ───────────────────               │  │
+               │  │  # systemctl enable --now ai-guard  │  │
+               │  │  # systemctl status ai-guard ● 运行 │  │
+               │  └────────────────────────────────────┘  │
+               │                                          │
+               │    ✅ 10 分钟：自然语言 → 系统上线       │
+               │                                          │
+               └───────────┬───────────┬──────────────────┘
+                           │           │
+         ┌─────────────────┘           └─────────────────┐
+         │                                               │
+ ┌───────▼───────┐   ┌───────────┐   ┌──────────────────▼──────────────┐
+ │  MIPI Camera  │   │  40-Pin   │   │  Wi-Fi 6 + Ethernet             │
+ │  ──────────── │   │  GPIO     │   │  ─────────────────────────────  │
+ │  OV13850/219  │   │  ──────── │   │  wlan0 · end0 · nmcli           │
+ │  /dev/video8  │   │  Pin  7   │   │                                 │
+ │  4-lane CSI   │   │  Pin 11   │   │  ▶ MQTT Broker :1883           │
+ │               │   │  Pin 13   │   │  ▶ Flask Web :8080             │
+ │               │   │  Pin 15   │   │  ▶ Home Assistant :8123        │
+ └───────┬───────┘   └─────┬─────┘   └─────────────────┬───────────────┘
+         │                 │                           │
+ ┌───────▼───────┐   ┌─────▼─────┐   ┌─────────────────▼──────────────┐
+ │  3 TOPS NPU   │   │  Buzzer   │   │  📱 + 🖥️  最终输出               │
+ │  ──────────── │   │  蜂鸣器    │   │  ─────────────────────────────  │
+ │  YOLOv5s      │   │  ──────── │   │  📱 Home Assistant 自动化推送  │
+ │  Pegasus→NBG  │   │  3.3V 有源│   │  🖥️ Flask Web :8080 实时画面   │
+ │               │   │  H=响 L=停│   │  📊 MQTT JSON 第三方集成       │
+ └───────────────┘   └───────────┘   └────────────────────────────────┘
 ```
 
 > ⚡ **10 分钟，一次对话：** Claude Code 自动查阅原理图引脚映射 → 加载内核驱动 → 生成 C++/Python 源码 → 板载编译 → 配置 Web 服务 → 写入 systemd 单元 → 系统上线。**不翻阅手册、不搜索引脚、不调试驱动。**
