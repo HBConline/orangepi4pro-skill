@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 680" width="860" height="680">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000044"/>
+    </filter>
+    <linearGradient id="banner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#23863622"/><stop offset="100%" stop-color="#3fb95011"/>
+    </linearGradient>
+    <linearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f0883e"/><stop offset="100%" stop-color="#f0a060"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="860" height="680" rx="12" fill="#0f1117"/>
+
+  <!-- Board card -->
+  <rect x="20" y="50" width="820" height="340" rx="16" fill="#161b22" stroke="#f0883e" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="30" y="38" width="280" height="24" rx="12" fill="#f0883e"/>
+  <text x="170" y="55" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#000">🟠 Orange Pi 4 Pro — Debian / Ubuntu</text>
+
+  <!-- User row -->
+  <circle cx="62" cy="100" r="18" fill="#1f6feb33" stroke="#1f6feb55" stroke-width="1"/>
+  <text x="62" y="106" text-anchor="middle" font-size="16" fill="#e6edf3">👤</text>
+  <rect x="90" y="78" width="420" height="44" rx="14" fill="#1f6feb15" stroke="#1f6feb44" stroke-width="1"/>
+  <text x="108" y="100" font-family="system-ui,sans-serif" font-size="14" fill="#e6edf3">写一个 DHT22 温湿度采集程序，每</text>
+  <text x="108" y="116" font-family="system-ui,sans-serif" font-size="14" fill="#e6edf3">5 秒上传到 MQTT，加 systemd 服务</text>
+
+  <!-- Claude row -->
+  <circle cx="62" cy="170" r="18" fill="#bc8cff33" stroke="#bc8cff55" stroke-width="1"/>
+  <text x="62" y="176" text-anchor="middle" font-size="16" fill="#e6edf3">🤖</text>
+  <text x="90" y="162" font-family="system-ui,sans-serif" font-size="13" fill="#8b949e">Claude Code + orangepi4pro skill</text>
+  <rect x="90" y="174" width="720" height="185" rx="14" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Step 1 -->
+  <circle cx="110" cy="204" r="12" fill="#3fb950"/><text x="110" y="209" text-anchor="middle" font-size="11" font-weight="700" fill="#000">1</text>
+  <text x="130" y="209" font-family="system-ui,sans-serif" font-size="14" fill="#e6edf3">直接读写 GPIO <tspan fill="#ffa657" font-family="monospace" font-size="13">wPi 2 (Pin 7)</tspan>，3.3V 信号</text>
+
+  <!-- Step 2 -->
+  <circle cx="110" cy="236" r="12" fill="#3fb950"/><text x="110" y="241" text-anchor="middle" font-size="11" font-weight="700" fill="#000">2</text>
+  <text x="130" y="241" font-family="system-ui,sans-serif" font-size="14" fill="#e6edf3">生成完整 Python 代码 — 含 DHT22 时序 + MQTT 上报</text>
+
+  <!-- Step 3 -->
+  <circle cx="110" cy="268" r="12" fill="#3fb950"/><text x="110" y="273" text-anchor="middle" font-size="11" font-weight="700" fill="#000">3</text>
+  <text x="130" y="273" font-family="system-ui,sans-serif" font-size="14" fill="#e6edf3"><tspan fill="#ffa657" font-family="monospace" font-size="13">pip3 install paho-mqtt</tspan> — 安装依赖</text>
+
+  <!-- Step 4 -->
+  <circle cx="110" cy="300" r="12" fill="#3fb950"/><text x="110" y="305" text-anchor="middle" font-size="11" font-weight="700" fill="#000">4</text>
+  <text x="130" y="305" font-family="system-ui,sans-serif" font-size="14" fill="#e6edf3">创建 <tspan fill="#ffa657" font-family="monospace" font-size="13">/etc/systemd/system/dht22-mqtt.service</tspan></text>
+
+  <!-- Step 5 -->
+  <circle cx="110" cy="332" r="12" fill="#3fb950"/><text x="110" y="337" text-anchor="middle" font-size="11" font-weight="700" fill="#000">5</text>
+  <text x="130" y="337" font-family="system-ui,sans-serif" font-size="14" fill="#e6edf3"><tspan fill="#ffa657" font-family="monospace" font-size="13">systemctl start dht22-mqtt</tspan> — 运行！</text>
+
+  <!-- Result banner -->
+  <rect x="90" y="368" width="720" height="34" rx="10" fill="url(#banner)" stroke="#23863655" stroke-width="1"/>
+  <text x="450" y="391" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="600" fill="#3fb950">⚡ 5 分钟：从自然语言需求 → 边缘设备上的生产级代码</text>
+
+  <!-- Connector arrows -->
+  <line x1="450" y1="405" x2="450" y2="440" stroke="#8b949e" stroke-width="2" stroke-dasharray="6,4"/>
+  <polygon points="445,436 450,448 455,436" fill="#8b949e"/>
+
+  <!-- GPIO box -->
+  <rect x="120" y="450" width="240" height="90" rx="12" fill="#161b22" stroke="#30363d" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="240" y="475" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#8b949e" font-weight="600" letter-spacing="2">40-PIN GPIO</text>
+  <text x="240" y="500" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#e6edf3">Pin 7 / wPi 2</text>
+  <text x="240" y="520" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#58a6ff">PL4 · OUTPUT</text>
+  <text x="240" y="535" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#f85149">⚠ 3.3V 电平</text>
+
+  <!-- Arrow GPIO→DHT22 -->
+  <line x1="363" y1="495" x2="420" y2="495" stroke="#8b949e" stroke-width="2"/>
+  <polygon points="415,489 427,495 415,501" fill="#8b949e"/>
+
+  <!-- DHT22 -->
+  <rect x="430" y="450" width="140" height="90" rx="12" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="500" y="482" text-anchor="middle" font-size="28">🌡️</text>
+  <text x="500" y="510" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="700" fill="#e6edf3">DHT22</text>
+  <text x="500" y="530" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#f0883e">温湿度传感器</text>
+
+  <!-- WiFi box -->
+  <rect x="120" y="560" width="240" height="85" rx="12" fill="#161b22" stroke="#30363d" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="240" y="585" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#8b949e" font-weight="600" letter-spacing="2">WI-FI 6</text>
+  <text x="240" y="610" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="#e6edf3">wlan0</text>
+  <text x="240" y="633" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#58a6ff">2.4 / 5 GHz</text>
+
+  <!-- Arrow WiFi→MQTT -->
+  <text x="427" y="607" text-anchor="middle" font-size="18" fill="#8b949e">📡</text>
+
+  <!-- MQTT -->
+  <rect x="430" y="560" width="140" height="85" rx="12" fill="#161b22" stroke="#3fb950" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="500" y="590" text-anchor="middle" font-size="28">🔄</text>
+  <text x="500" y="618" text-anchor="middle" font-family="system-ui,sans-serif" font-size="15" font-weight="700" fill="#e6edf3">MQTT Broker</text>
+  <text x="500" y="638" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" fill="#58a6ff">192.168.1.100:1883</text>
+
+  <!-- Footer -->
+  <text x="430" y="668" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#8b949e">Claude Code + orangepi4pro skill · github.com/HBConline/orangepi4pro-skill</text>
+</svg>
