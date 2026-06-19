@@ -25,28 +25,13 @@
 
 ### 🎯 Core Use Case · 核心场景
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Orange Pi 4 Pro (Debian/Ubuntu)                    │
-│  ┌─────────────────────────────────────────────┐    │
-│  │  Claude Code + orangepi4pro skill            │    │
-│  │  ┌─────────────────────────────────────┐    │    │
-│  │  │ "写一个 DHT22 温湿度采集程序，       │    │    │
-│  │  │  每 5 秒上传到 MQTT，加 systemd 服务" │    │    │
-│  │  │                                     │    │    │
-│  │  │ Claude Code:                          │    │    │
-│  │  │  1. 直接读写 GPIO wPi2 (Pin7)        │    │    │
-│  │  │  2. 生成完整 Python 代码              │    │    │
-│  │  │  3. 安装依赖 (pip3 paho-mqtt)         │    │    │
-│  │  │  4. 创建 systemd unit 文件            │    │    │
-│  │  │  5. 测试运行                          │    │    │
-│  │  │  ✅ 5 分钟从需求到运行！               │    │    │
-│  │  └─────────────────────────────────────┘    │    │
-│  └─────────────────────────────────────────────┘    │
-│  GPIO ◄──► DHT22 Sensor                             │
-│  WiFi ◄──► MQTT Broker (192.168.1.x)               │
-└─────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="architecture-diagram.svg" alt="Orange Pi 4 Pro Edge AI Security System — Claude Code Onboard" width="900">
+</p>
+
+> 💬 **"写一个边缘 AI 安防系统：MIPI 摄像头 + NPU 行人检测，检测到人时触发警报蜂鸣器、推送手机通知，加 Flask Web 监控页面，systemd 开机自启"**
+>
+> 🤖 Claude Code 10 分钟完成：MIPI 驱动加载 → NPU YOLOv5s 推理 → GPIO 蜂鸣器 → MQTT 推送 JSON → Flask Web → systemd 服务
 
 ### Why This Skill? · 为什么需要这个技能？
 
